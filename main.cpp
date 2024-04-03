@@ -20,17 +20,6 @@
     cout << "timezone: " << weather.timezone << endl;
 }
 
-[[maybe_unused]] void print_pollution(const AirPollution &air_pollution) {
-    cout << "co: " << air_pollution.co << endl;
-    cout << "no2: " << air_pollution.no2 << endl;
-    cout << "o3: " << air_pollution.o3 << endl;
-    cout << "so2: " << air_pollution.so2 << endl;
-    cout << "pm2_5: " << air_pollution.pm2_5 << endl;
-    cout << "pm10: " << air_pollution.pm10 << endl;
-    cout << "data_time: " << air_pollution.data_time << endl;
-    cout << "air_quality: " << air_pollution.air_quality << endl;
-}
-
 size_t write_callback(void *contents, size_t size, size_t nmemb, void *userp) {
     // https://gist.github.com/alghanmi/c5d7b761b2c9ab199157
     ((std::string *) userp)->append((char *) contents, size * nmemb);
@@ -125,8 +114,8 @@ get_weather(CURL *curl, const std::string &api_key, const std::string &city, con
     return {weather};
 }
 
-std::optional<AirPollution>
-get_pollution(CURL *curl, const std::string &api_key, const std::string &lat, const std::string &lon) {
+std::optional<std::string>
+get_air_quality(CURL *curl, const std::string &api_key, const std::string &lat, const std::string &lon) {
     // http://api.openweathermap.org/data/2.5/air_pollution?lat={lat}&lon={lon}&appid={API key}
     // https://openweathermap.org/api/air-pollution
     const std::string url =
@@ -144,25 +133,38 @@ get_pollution(CURL *curl, const std::string &api_key, const std::string &lat, co
         return std::nullopt;
     }
 
-    AirPollution air_pollution;
+    cout << response.value() << endl;
 
-    air_pollution.co = std::to_string(document["list"][0]["components"]["co"].GetDouble());
-    air_pollution.no2 = std::to_string(document["list"][0]["components"]["no2"].GetDouble());
-    air_pollution.o3 = std::to_string(document["list"][0]["components"]["o3"].GetDouble());
-    air_pollution.so2 = std::to_string(document["list"][0]["components"]["so2"].GetDouble());
-    air_pollution.pm2_5 = std::to_string(document["list"][0]["components"]["pm2_5"].GetDouble());
-    air_pollution.pm10 = std::to_string(document["list"][0]["components"]["pm10"].GetDouble());
-    air_pollution.data_time = std::to_string(document["list"][0]["dt"].GetInt());
-    air_pollution.air_quality = "?";
+    std::string air_quality;
+    auto co = document["list"][0]["components"]["co"].GetDouble();
+    auto no2 = document["list"][0]["components"]["no2"].GetDouble();
+    auto o3 = document["list"][0]["components"]["o3"].GetDouble();
+    auto so2 = document["list"][0]["components"]["so2"].GetDouble();
+    auto pm2_5 = document["list"][0]["components"]["pm2_5"].GetDouble();
+    auto pm10 = document["list"][0]["components"]["pm10"].GetDouble();
 
-    return {air_pollution};
+    if (so2 < 20 && no2 < 40 && pm10 < 20 && pm2_5 < 10 && o3 < 60 && co < 4400){
+        air_quality = "Good";
+    } else if (so2 < 80 && no2 < 70 && pm10 < 50 && pm2_5 < 25 && o3 < 100 && co < 9400){
+        air_quality = "Fair";
+    } else if (so2 < 250 && no2 < 150 && pm10 < 100 && pm2_5 < 50 && o3 < 140 && co < 12400) {
+        air_quality = "Moderate";
+    } else if (so2 < 350 && no2 < 200 && pm10 < 200 && pm2_5 < 75 && o3 < 180 && co < 15400) {
+        air_quality = "Poor";
+    } else {
+        air_quality = "Very poor";
+    }
+
+    return {air_quality};
 }
+
+
 
 int main() {
     // https://everything.curl.dev/helpers/url/parse.html
     CURL *curl;
     const std::string api_key = "cdc4242f13de51119450c25f18455def";
-    const std::string city = "Plzeň";
+    const std::string city = "Ústí+nad+Orlicí"; // Města s mezerama se musí spojovat znaménkem "+" a nesmí být mezera
 
     curl = curl_easy_init();
     if (curl) {
@@ -174,9 +176,9 @@ int main() {
         if (!weather.has_value()) return 0;
         print_weather(weather.value());
 
-        auto pollution = get_pollution(curl, api_key, pair->first, pair->second);
-        if (!pollution.has_value()) return 0;
-        print_pollution(pollution.value());
+        auto air_quality = get_air_quality(curl, api_key, pair->first, pair->second);
+        if (!air_quality.has_value()) return 0;
+        cout << air_quality.value() << endl;
 
         curl_easy_cleanup(curl);    // Free curl v podstatě
     }
