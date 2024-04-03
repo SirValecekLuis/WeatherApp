@@ -11,8 +11,6 @@
     cout << "temp_max: " << weather.temp_max << endl;
     cout << "pressure: " << weather.pressure << endl;
     cout << "humidity: " << weather.humidity << endl;
-    cout << "sea level: " << weather.sea_level << endl;
-    cout << "ground_level: " << weather.ground_level << endl;
     cout << "visibility: " << weather.visibility << endl;
     cout << "wind_speed: " << weather.wind_speed << endl;
     cout << "cloudiness: " << weather.cloudiness << endl;
@@ -20,6 +18,17 @@
     cout << "sunrise: " << weather.sunrise << endl;
     cout << "sunset: " << weather.sunset << endl;
     cout << "timezone: " << weather.timezone << endl;
+}
+
+[[maybe_unused]] void print_pollution(const AirPollution &air_pollution) {
+    cout << "co: " << air_pollution.co << endl;
+    cout << "no2: " << air_pollution.no2 << endl;
+    cout << "o3: " << air_pollution.o3 << endl;
+    cout << "so2: " << air_pollution.so2 << endl;
+    cout << "pm2_5: " << air_pollution.pm2_5 << endl;
+    cout << "pm10: " << air_pollution.pm10 << endl;
+    cout << "data_time: " << air_pollution.data_time << endl;
+    cout << "air_quality: " << air_pollution.air_quality << endl;
 }
 
 size_t write_callback(void *contents, size_t size, size_t nmemb, void *userp) {
@@ -48,13 +57,17 @@ std::optional<std::string> send_request(CURL *curl, const std::string &url) {
 std::optional<std::pair<std::string, std::string>>
 get_lat_lon(CURL *curl, const std::string &api_key, const std::string &city) {
     // GEO http://api.openweathermap.org/geo/1.0/direct?q={city name},{state code},{country code}&limit={limit}&appid={API key}
-    const std::string url = "http://api.openweathermap.org/geo/1.0/direct?q=" + city + "&limit=1&appid=" + api_key;
+    const std::string url = "https://api.openweathermap.org/geo/1.0/direct?q=" + city + "&limit=1&appid=" + api_key;
 
     auto response = send_request(curl, url);
     if (!response.has_value()) return std::nullopt;
 
     rapidjson::Document document;
     document.Parse(response.value().c_str());
+
+    if (document.HasParseError()) {
+        return std::nullopt;
+    }
 
     auto object = document[0].GetObj();
     auto lat = object["lat"].IsDouble();
@@ -81,9 +94,15 @@ get_weather(CURL *curl, const std::string &api_key, const std::string &city, con
     rapidjson::Document document;
     document.Parse(response.value().c_str());
 
+    if (document.HasParseError()) {
+        return std::nullopt;
+    }
+
     Weather weather;
 
     // cout << response.value() << endl;
+
+    // cout << document.GetObj().FindMember("lon")->name.GetString() << endl;
 
     weather.name = city;
     weather.lon = std::to_string(document["coord"]["lon"].GetFloat());
@@ -95,8 +114,6 @@ get_weather(CURL *curl, const std::string &api_key, const std::string &city, con
     weather.temp_max = std::to_string(document["main"]["temp_max"].GetFloat());
     weather.pressure = std::to_string(document["main"]["pressure"].GetInt());
     weather.humidity = std::to_string(document["main"]["humidity"].GetInt());
-    weather.sea_level = std::to_string(document["main"]["sea_level"].GetInt());
-    weather.ground_level = std::to_string(document["main"]["grnd_level"].GetInt());
     weather.visibility = std::to_string(document["visibility"].GetInt());
     weather.wind_speed = std::to_string(document["wind"]["speed"].GetFloat());
     weather.cloudiness = std::to_string(document["clouds"]["all"].GetInt());
@@ -110,34 +127,56 @@ get_weather(CURL *curl, const std::string &api_key, const std::string &city, con
 
 std::optional<AirPollution>
 get_pollution(CURL *curl, const std::string &api_key, const std::string &lat, const std::string &lon) {
-    // http://api.openweathermap.org/data/2.5/air_pollution/forecast?lat={lat}&lon={lon}&appid={API key}
+    // http://api.openweathermap.org/data/2.5/air_pollution?lat={lat}&lon={lon}&appid={API key}
+    // https://openweathermap.org/api/air-pollution
     const std::string url =
-            "http://api.openweathermap.org/data/2.5/air_pollution?lat=" + lat + "&lon=" + lon + "&appid=" +
+            "https://api.openweathermap.org/data/2.5/air_pollution?lat=" + lat + "&lon=" + lon + "&appid=" +
             api_key;
 
-    cout << send_request(curl, url).value();
+    auto response = send_request(curl, url);
 
-    return {AirPollution{}};
+    if (!response.has_value()) return std::nullopt;
+
+    rapidjson::Document document;
+    document.Parse(response.value().c_str());
+
+    if (document.HasParseError()) {
+        return std::nullopt;
+    }
+
+    AirPollution air_pollution;
+
+    air_pollution.co = std::to_string(document["list"][0]["components"]["co"].GetDouble());
+    air_pollution.no2 = std::to_string(document["list"][0]["components"]["no2"].GetDouble());
+    air_pollution.o3 = std::to_string(document["list"][0]["components"]["o3"].GetDouble());
+    air_pollution.so2 = std::to_string(document["list"][0]["components"]["so2"].GetDouble());
+    air_pollution.pm2_5 = std::to_string(document["list"][0]["components"]["pm2_5"].GetDouble());
+    air_pollution.pm10 = std::to_string(document["list"][0]["components"]["pm10"].GetDouble());
+    air_pollution.data_time = std::to_string(document["list"][0]["dt"].GetInt());
+    air_pollution.air_quality = "?";
+
+    return {air_pollution};
 }
 
 int main() {
     // https://everything.curl.dev/helpers/url/parse.html
     CURL *curl;
     const std::string api_key = "cdc4242f13de51119450c25f18455def";
-    const std::string city = "Olomouc";
+    const std::string city = "Plzeň";
 
     curl = curl_easy_init();
     if (curl) {
         auto pair = get_lat_lon(curl, api_key, city);
         if (!pair.has_value()) return 0;
+        cout << "lat: " << pair->first << " lon: " << pair->second << endl;
 
         auto weather = get_weather(curl, api_key, city, pair->first, pair->second);
         if (!weather.has_value()) return 0;
-
-        // print_weather(weather.value());
+        print_weather(weather.value());
 
         auto pollution = get_pollution(curl, api_key, pair->first, pair->second);
         if (!pollution.has_value()) return 0;
+        print_pollution(pollution.value());
 
         curl_easy_cleanup(curl);    // Free curl v podstatě
     }

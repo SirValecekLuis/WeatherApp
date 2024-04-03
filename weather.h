@@ -28,8 +28,6 @@ struct Weather {
     std::string temp_max;
     std::string pressure;
     std::string humidity;
-    std::string sea_level;
-    std::string ground_level;
     std::string visibility;
     std::string wind_speed;
     std::string cloudiness;
@@ -48,9 +46,12 @@ struct AirPollution {
     std::string pm2_5;
     std::string pm10;
     std::string data_time;
+    std::string air_quality;
 };
 
 [[maybe_unused]] void print_weather(const Weather &weather);
+
+[[maybe_unused]] void print_pollution(const AirPollution &air_pollution);
 
 size_t write_callback(void *contents, size_t size, size_t nmemb, void *userp);
 
@@ -63,6 +64,5 @@ std::optional<std::string>
 get_weather(CURL *curl, std::string &api_key, std::string &city, std::string &lat, std::string &lon);
 
 std::optional<AirPollution> get_pollution(CURL *curl, std::string &api_key, std::string &lat, std::string &lon);
-
 
 #endif //WEATHERAPP_WEATHER_H
