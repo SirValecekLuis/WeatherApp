@@ -22,15 +22,16 @@
 }
 
 [[maybe_unused]] void print_astronomy(const Astronomy &astronomy) {
-    std::cout << "Local Time: " << astronomy.local_time << std::endl;
-    std::cout << "Sunrise: " << astronomy.sunrise << std::endl;
-    std::cout << "Sunset: " << astronomy.sunset << std::endl;
-    std::cout << "Moonrise: " << astronomy.moonrise << std::endl;
-    std::cout << "Moonset: " << astronomy.moonset << std::endl;
-    std::cout << "Moon Phase: " << astronomy.moon_phase << std::endl;
-    std::cout << "Moon Illumination: " << astronomy.moon_illumination << std::endl;
-    std::cout << "Is Moon Up: " << astronomy.is_moon_up << std::endl;
-    std::cout << "Is Sun Up: " << astronomy.is_sun_up << std::endl;
+    cout << "Local Time: " << astronomy.local_time << endl;
+    cout << "Sunrise: " << astronomy.sunrise << endl;
+    cout << "Sunset: " << astronomy.sunset << endl;
+    cout << "Moonrise: " << astronomy.moonrise << endl;
+    cout << "Moonset: " << astronomy.moonset << endl;
+    cout << "Moon Phase: " << astronomy.moon_phase << endl;
+    cout << "Moon Illumination: " << astronomy.moon_illumination << endl;
+    cout << "Is Moon Up: " << astronomy.is_moon_up << endl;
+    cout << "Is Sun Up: " << astronomy.is_sun_up << endl;
+    cout << "When is next full moon: " << astronomy.next_full_moon << endl;
 }
 
 std::string format_float(float num) {
@@ -48,9 +49,8 @@ std::string format_float(float num) {
     return stream.str();
 }
 
-std::string unix_to_string(int time) {
-    std::time_t timestamp = time;
-    std::tm *tm_struct = std::localtime(&timestamp);
+std::string unix_to_string(time_t time) {
+    std::tm *tm_struct = std::localtime(&time);
 
     auto txt_lambda = [](int time) -> std::string {
         return time < 10 ? "0" + std::to_string(time) : std::to_string(time);
@@ -63,7 +63,7 @@ std::string unix_to_string(int time) {
     return formated_time;
 }
 
-std::string decide_air_quality(double co, double no2, double o3, double so2, double pm2_5, double pm10){
+std::string decide_air_quality(double co, double no2, double o3, double so2, double pm2_5, double pm10) {
     std::string air_quality;
     if (co == -1 && no2 == -1 && o3 == -3 && so2 == -1 && pm2_5 == -1 && pm10 == -1) {
         air_quality = "Not found";

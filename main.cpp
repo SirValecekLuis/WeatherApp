@@ -4,11 +4,11 @@
 #include "weather_api.h"
 #include "application.h"
 
-
 int main(int argc, char *argv[]) {
     // https://everything.curl.dev/helpers/url/parse.html
+
     CURL *curl;
-    const std::string city = "London"; // Města s mezerama se musí spojovat znaménkem "+" a nesmí být mezera
+    const std::string city = "Olomouc"; // Města s mezerama se musí spojovat znaménkem "+" a nesmí být mezera
 
     curl = curl_easy_init();
     if (curl) {
@@ -30,7 +30,7 @@ int main(int argc, char *argv[]) {
 
         curl_easy_cleanup(curl);    // Free curl v podstatě
     }
-
+//
 //    QApplication app(argc, argv);
 //
 //    MainWindow main_window;

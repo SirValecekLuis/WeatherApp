@@ -34,8 +34,7 @@ get_weather(CURL *curl, const std::string &city, const std::string &lat,
     // Weather data https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&appid={API key}
     const std::string url =
             "https://api.openweathermap.org/data/2.5/weather?lat=" + lat + "&lon=" + lon + "&appid=" +
-            OPEN_WEATHER_KEY +
-            "&units=metric" + "&lang=en";
+            OPEN_WEATHER_KEY + "&units=metric" + "&lang=en";
 
     auto response = send_request(curl, url);
 

@@ -29,4 +29,3 @@ target_link_libraries(WeatherApp PRIVATE unofficial::curlpp::curlpp)
 
 find_package(RapidJSON CONFIG REQUIRED)
 target_link_libraries(WeatherApp PRIVATE rapidjson)
-

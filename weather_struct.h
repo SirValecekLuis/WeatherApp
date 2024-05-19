@@ -46,12 +46,14 @@ struct Astronomy {
     std::string moonset = "Not available";
     // Text toho v jaké fázi je měsíc
     std::string moon_phase = "Not available";
-    // Jak moc je měsíc osvětlen
+    // Jak moc je měsíc osvětlen v % 0 - 100
     std::string moon_illumination = "Not available";
     // Je vidět měsíc?
     std::string is_moon_up = "Not available";
     // Je vidět slunce?
     std::string is_sun_up = "Not available";
+    // Na tento jediný řádek musím brát API z U.S. Naval Observatory
+    std::string next_full_moon = "Not available";
 };
 
 [[maybe_unused]] void print_weather(const Weather &weather);
@@ -60,7 +62,7 @@ struct Astronomy {
 
 std::string format_float(float num);
 
-std::string unix_to_string(int time);
+std::string unix_to_string(time_t time);
 
 std::string decide_air_quality(double co, double no2, double o3, double so2, double pm2_5, double pm10);
 

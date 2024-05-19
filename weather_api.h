@@ -17,4 +17,6 @@ std::optional<Weather> get_weather(CURL *curl, const std::string &city);
 
 std::optional<Astronomy> get_astronomy(CURL *curl, const std::string &city);
 
+std::optional<std::string> get_full_moon(CURL *curl);
+
 #endif //WEATHERAPP_WEATHER_API_H

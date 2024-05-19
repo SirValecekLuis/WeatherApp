@@ -109,13 +109,12 @@ std::optional<Weather> get_weather(CURL *curl, const std::string &city) {
 }
 
 std::optional<Astronomy> get_astronomy(CURL *curl, const std::string &city) {
-    std::time_t timestamp;
-    time(&timestamp);
-    std::tm *tm_struct = std::localtime(&timestamp);
+    std::time_t timestamp = time(&timestamp);
+    std::tm tm_struct = *std::localtime(&timestamp);
 
     const char *format = "%Y-%m-%d";
     char dt[20];
-    std::size_t size = std::strftime(dt, 20, format, tm_struct);
+    std::size_t size = std::strftime(dt, 20, format, &tm_struct);
 
     if (size == 0) return std::nullopt;
 
@@ -181,6 +180,58 @@ std::optional<Astronomy> get_astronomy(CURL *curl, const std::string &city) {
         }
     }
 
+    auto full_moon_date = get_full_moon(curl);
+    if (full_moon_date.has_value()){
+        astronomy.next_full_moon = full_moon_date.value();
+    }
+
     return {astronomy};
 }
 
+std::optional<std::string> get_full_moon(CURL *curl) {
+    std::time_t timestamp = time(&timestamp);
+    std::tm tm_struct = *std::localtime(&timestamp);
+
+    const char *format = "%Y-%m-%d";
+    char dt[20];
+    std::size_t size = std::strftime(dt, 20, format, &tm_struct);
+    std::string dt_str(dt);
+
+    if (size == 0) return std::nullopt;
+
+    const std::string url = "https://aa.usno.navy.mil/api/moon/phases/date?date=" + dt_str + "&nump=4&id=SVLUIS";
+
+    auto response = send_request(curl, url);
+
+    if (!response.has_value()) return std::nullopt;
+
+    rapidjson::Document document;
+    document.Parse(response.value().c_str());
+
+    if (document.HasParseError()) return std::nullopt;
+
+
+    if (!document.HasMember("phasedata") || !document["phasedata"].IsArray()) {
+        return std::nullopt;
+    }
+
+    int day = 0;
+    int month = 0;
+    int year = 0;
+    const rapidjson::Value &phase_data = document["phasedata"];
+    for (rapidjson::SizeType i = 0; i < phase_data.Size(); i++) {
+        const rapidjson::Value &phase = phase_data[i];
+        if (phase.HasMember("phase") && phase["phase"].IsString()) {
+            // Když najdu fázi úplňku, vezmu si datum a zformátuji to
+            if (strcmp(phase["phase"].GetString(), "Full Moon") == 0) {
+                day = phase["day"].GetInt();
+                month = phase["month"].GetInt();
+                year = phase["year"].GetInt();
+            }
+        }
+    }
+
+    std::string full_moon_date = std::to_string(year) + "-" + std::to_string(month) + "-" + std::to_string(day);
+
+    return {full_moon_date};
+}
