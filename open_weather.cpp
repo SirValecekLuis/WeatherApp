@@ -29,7 +29,7 @@ get_lat_lon(CURL *curl, const std::string &city) {
 }
 
 std::optional <Weather>
-get_weather(CURL *curl, const std::string &city, const std::string &lat,
+get_weather(CURL *curl, const std::string &lat,
             const std::string &lon) {
     // Weather data https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&appid={API key}
     const std::string url =
@@ -46,8 +46,6 @@ get_weather(CURL *curl, const std::string &city, const std::string &lat,
     if (document.HasParseError()) return std::nullopt;
 
     Weather weather;
-
-    weather.name = city;
 
     if (document.HasMember("weather") && document["weather"].IsArray() && !document["weather"].Empty()) {
         const rapidjson::Value &weatherArray = document["weather"];
@@ -85,6 +83,9 @@ get_weather(CURL *curl, const std::string &city, const std::string &lat,
 
     weather.data_time = (document.HasMember("dt") && document["dt"].IsInt()) ? unix_to_string(document["dt"].GetInt())
                                                                              : weather.data_time;
+
+    weather.name = (document.HasMember("name") && document["name"].IsString()) ? document["name"].GetString()
+                                                                        : weather.data_time;
 
     auto air_quality = get_air_quality(curl, lat, lon);
     weather.air_quality = air_quality.has_value() ? air_quality.value() : weather.air_quality;

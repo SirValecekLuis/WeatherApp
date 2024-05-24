@@ -29,8 +29,6 @@
     cout << "Moonset: " << astronomy.moonset << endl;
     cout << "Moon Phase: " << astronomy.moon_phase << endl;
     cout << "Moon Illumination: " << astronomy.moon_illumination << endl;
-    cout << "Is Moon Up: " << astronomy.is_moon_up << endl;
-    cout << "Is Sun Up: " << astronomy.is_sun_up << endl;
     cout << "When is next full moon: " << astronomy.next_full_moon << endl;
 }
 

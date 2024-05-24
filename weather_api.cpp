@@ -169,14 +169,6 @@ std::optional<Astronomy> get_astronomy(CURL *curl, const std::string &city) {
             if (astro.HasMember("moon_illumination")) {
                 astronomy.moon_illumination = std::to_string(astro["moon_illumination"].GetInt());
             }
-
-            if (astro.HasMember("is_moon_up")) {
-                astronomy.is_moon_up = std::to_string(astro["is_moon_up"].GetInt());
-            }
-
-            if (astro.HasMember("is_sun_up")) {
-                astronomy.is_sun_up = std::to_string(astro["is_sun_up"].GetInt());
-            }
         }
     }
 

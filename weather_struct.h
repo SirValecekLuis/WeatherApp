@@ -48,10 +48,6 @@ struct Astronomy {
     std::string moon_phase = "Not available";
     // Jak moc je měsíc osvětlen v % 0 - 100
     std::string moon_illumination = "Not available";
-    // Je vidět měsíc?
-    std::string is_moon_up = "Not available";
-    // Je vidět slunce?
-    std::string is_sun_up = "Not available";
     // Na tento jediný řádek musím brát API z U.S. Naval Observatory
     std::string next_full_moon = "Not available";
 };
